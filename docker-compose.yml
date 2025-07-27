@@ -11,7 +11,8 @@ services:
       - "8331:80"
     volumes:
       - /etc/localtime:/etc/localtime:ro
-      - ./MeshSight-Gateway_config:/workspace/config
+      - /tmp/meshsight-gateway:/tmp
+      - ./data/MeshSight-Gateway_config:/workspace/config
     networks:
       - meshsight-network
   MeshSight-Gateway-PostgreSQL:
@@ -28,7 +29,8 @@ services:
       - 'idle_in_transaction_session_timeout=30s'
     restart: unless-stopped
     volumes:
-      - ./MeshSight-Gateway-PostgreSQL_data:/var/lib/postgresql/data
+      - /etc/localtime:/etc/localtime:ro
+      - ./data/MeshSight-Gateway-PostgreSQL_data:/var/lib/postgresql/data
     networks:
       - meshsight-network
 # docker compose network
