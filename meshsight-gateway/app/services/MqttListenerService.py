@@ -261,9 +261,10 @@ class MqttListenerService:
             return
 
     def decode_encrypted(self, topic: str, mp):
+        public_key = "1PG7OiApB1nwvP+rz05pAQ=="
         try:
             # 讀取解密金鑰
-            key_list = ConfigUtil().read_config()["meshtastic"]["channels"]
+            key_list = ConfigUtil().get_config("meshtastic.channels", [])
             # 解析 topic 獲取 channel
             channel = topic.split("/")[-2]
             # 取得 channel 對應的金鑰
@@ -271,8 +272,8 @@ class MqttListenerService:
                 (item["key"] for item in key_list if item["name"] == channel), None
             )
             if key is None:
-                self.logger.debug(f"找不到 '{channel}' 的金鑰，使用公開金鑰 '1PG7OiApB1nwvP+rz05pAQ==' 嘗試解密")
-                key = "1PG7OiApB1nwvP+rz05pAQ=="
+                self.logger.debug(f"找不到 '{channel}' 的金鑰，使用公開金鑰 '{public_key}' 嘗試解密")
+                key = public_key
             # 轉換金鑰為 base64
             key_bytes = base64.b64decode(key.encode("ascii"))
 
@@ -294,7 +295,7 @@ class MqttListenerService:
 
             data = mesh_pb2.Data()
             data.ParseFromString(decrypted_bytes)
-            mp.decoded.CopyFrom(data)
+            mp.decoded.CopyFrom(data)  
             # 回傳解密後的封包
             return mp
         except Exception as e:
