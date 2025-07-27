@@ -271,8 +271,8 @@ class MqttListenerService:
                 (item["key"] for item in key_list if item["name"] == channel), None
             )
             if key is None:
-                self.logger.debug(f"找不到 '{channel}' 的金鑰")
-                return None
+                self.logger.debug(f"找不到 '{channel}' 的金鑰，使用公開金鑰 '1PG7OiApB1nwvP+rz05pAQ==' 嘗試解密")
+                key = "1PG7OiApB1nwvP+rz05pAQ=="
             # 轉換金鑰為 base64
             key_bytes = base64.b64decode(key.encode("ascii"))
 
