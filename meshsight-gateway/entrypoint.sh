@@ -9,5 +9,8 @@ done &
 # 先執行 config 初始化
 python3 -m app.init_config
 
+# 等待秒
+sleep 5
+
 # 啟動主應用程式
 exec python3 -m app
