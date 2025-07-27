@@ -14,12 +14,11 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
-
 # 設定檔讀取
 config = ConfigUtil().read_config()
 
+logger = logging.getLogger(__name__)
+logger.setLevel(config.get("log", {}).get("level", "INFO").upper())
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):

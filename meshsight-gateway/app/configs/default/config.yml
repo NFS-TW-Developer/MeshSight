@@ -1,4 +1,6 @@
-aaa: 123
+log:
+  level: "INFO"
+
 timezone: "UTC"
 
 cache:

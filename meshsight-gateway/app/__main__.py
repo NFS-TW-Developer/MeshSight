@@ -2,11 +2,12 @@ import asyncio
 import logging
 import os
 from app.main import main
+from app.utils.ConfigUtil import ConfigUtil
 from fastapi.logger import logger as fastapi_logger
 
 
 def configure_logging():
-    log_level = os.getenv("LOG_LEVEL", "INFO").upper()
+    log_level = ConfigUtil().read_config().get("log", {}).get("level", "INFO").upper()
     log_format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 
     logging.basicConfig(

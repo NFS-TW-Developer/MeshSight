@@ -45,6 +45,7 @@ class MqttListenerService:
     def __init__(self) -> None:
         self.config = ConfigUtil().read_config()
         self.logger = logging.getLogger(__name__)
+        self.logger.setLevel(self.config.get("log", {}).get("level", "INFO").upper())
 
     async def start(self):
         tasks = []
@@ -139,7 +140,6 @@ class MqttListenerService:
 
                 # 檢查是否為加密封包
                 if mp.HasField("encrypted") and not mp.HasField("decoded"):
-                    self.logger.debug("有加密，正在嘗試解密中...")
                     mp = self.decode_encrypted(topic, mp)
                     if mp is None:
                         return
