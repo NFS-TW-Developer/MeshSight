@@ -298,7 +298,7 @@ class MqttListenerService:
             # 回傳解密後的封包
             return mp
         except Exception as e:
-            self.logger.debug(f"{inspect.currentframe().f_code.co_name}: {e}")
+            self.logger.debug(f"解密失敗: {e}")
             return None
 
     #################################
