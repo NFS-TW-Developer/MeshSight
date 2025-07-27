@@ -6,7 +6,6 @@ import yaml
 from datetime import datetime
 from filelock import FileLock
 
-logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 

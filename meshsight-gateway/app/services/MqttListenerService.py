@@ -72,6 +72,7 @@ class MqttListenerService:
                     # 訂閱多個主題
                     for topic in client_config["topics"]:
                         await client.subscribe(topic)
+                    self.logger.info(f"已訂閱 {host} 的主題: {client_config['topics']}")
                     async for message in client.messages:
                         await self.on_message(client, None, message)
             except Exception as e:
