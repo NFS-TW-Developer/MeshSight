@@ -4,14 +4,14 @@ from sqlalchemy import engine_from_config
 from sqlalchemy import pool
 
 from alembic import context
-from utils.ConfigUtil import ConfigUtil
+from app.utils.ConfigUtil import ConfigUtil
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
 
 # 讀取 YAML 設定檔
-config_data = ConfigUtil.read_config()
+config_data = ConfigUtil().read_config()
 
 # 構建資料庫 URL
 db_config = config_data["postgres"]

@@ -1,0 +1,78 @@
+aaa: 123
+timezone: "UTC"
+
+cache:
+  path: "/tmp/meshsight-gateway"
+  ttl: 3600
+
+meshtastic:
+  channels:
+    - name: "LongFast"
+      key: "1PG7OiApB1nwvP+rz05pAQ==" # aka AQ==
+  position:
+    expire: 25 # 保留期限，單位為 hour
+    maxPrecisionBits: 19 # 最大精度位元數
+    maxQueryPeriod: 24 # 最大查詢期限，單位為 hour
+  neighborinfo:
+    expire: 25 # 保留期限，單位為 hour
+    maxQueryPeriod: 24 # 最大查詢期限，單位為 hour
+    maxDistance: 20000 # 最大距離，單位為 meter。LoRa 通常可達 16 至 20 公里，此限制用於防止手動定位的節點誤導使用者。來源：https://wikipedia.org/wiki/LoRa
+
+postgres:
+  host: "MeshSight-Gateway-PostgreSQL"
+  port: "5432"
+  database: "postgres"
+  username: "postgres"
+  password: "changeme"
+
+mqtt:
+  client:
+    - hosts: ["mqtt.meshtastic.org"]
+      port: 1883
+      identifier: "MeshSight-Gateway"
+      username: "meshdev"
+      password: "large4cats"
+      showErrorLog: true
+      retryTime: 30 # 重試時間，單位為 second
+      topics: [
+          # https://meshtastic.org/docs/configuration/radio/lora/#region
+          "msh/US/#",
+          "msh/EU_433/#",
+          "msh/EU_868/#",
+          "msh/CN/#",
+          "msh/JP/#",
+          "msh/ANZ/#",
+          "msh/KR/#",
+          "msh/TW/#",
+          "msh/RU/#",
+          "msh/IN/#",
+          "msh/NZ_865/#",
+          "msh/TH/#",
+          "msh/UA_433/#",
+          "msh/UA_868/#",
+          "msh/MY_433/#",
+          "msh/MY_919/#",
+          "msh/SG_923/#",
+          "msh/LORA_24/#",
+          # custom
+          "msh/+/2/#",
+          "msh/+/+/2/#",
+          "msh/+/+/+/2/#",
+          "msh/+/+/+/+/2/#",
+          "msh/+/+/+/+/+/2/#",
+        ]
+    - hosts: ["test.mosquitto.org"]
+      port: 1883
+      identifier: "MeshSight_global"
+      username: ""
+      password: ""
+      showErrorLog: true
+      retryTime: 30 # 重試時間，單位為 second
+      topics: [
+          # custom
+          "msh/+/2/#",
+          "msh/+/+/2/#",
+          "msh/+/+/+/2/#",
+          "msh/+/+/+/+/2/#",
+          "msh/+/+/+/+/+/2/#",
+        ]

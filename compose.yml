@@ -12,7 +12,7 @@ services:
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - /tmp/meshsight-gateway:/tmp
-      - ./data/MeshSight-Gateway_config:/workspace/config
+      - ./data/MeshSight-Gateway/configs:/workspace/configs
     networks:
       - meshsight-network
   MeshSight-Gateway-PostgreSQL:
