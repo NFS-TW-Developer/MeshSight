@@ -9,8 +9,22 @@ cache:
 
 meshtastic:
   channels:
-    - name: "LongFast"
-      key: "1PG7OiApB1nwvP+rz05pAQ==" # aka AQ==
+    - key: 1PG7OiApB1nwvP+rz05pAQ== # aka AQ==
+      name: LongSlow
+    - key: 1PG7OiApB1nwvP+rz05pAQ== # aka AQ==
+      name: LongMod
+    - key: 1PG7OiApB1nwvP+rz05pAQ== # aka AQ==
+      name: LongFast
+    - key: 1PG7OiApB1nwvP+rz05pAQ== # aka AQ==
+      name: MediumSlow
+    - key: 1PG7OiApB1nwvP+rz05pAQ== # aka AQ==
+      name: MediumFast
+    - key: 1PG7OiApB1nwvP+rz05pAQ== # aka AQ==
+      name: ShortSlow
+    - key: 1PG7OiApB1nwvP+rz05pAQ== # aka AQ==
+      name: ShortFast
+    - key: 1PG7OiApB1nwvP+rz05pAQ== # aka AQ==
+      name: ShortTurbo
   position:
     expire: 25 # 保留期限，單位為 hour
     maxPrecisionBits: 19 # 最大精度位元數

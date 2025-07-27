@@ -144,31 +144,17 @@ class ConfigUtil:
     def edit_config(self, key, value):
         """編輯某個 key 的值"""
         try:
-            config = self.read_config()
-            keys = key.split(".")
-            d = config
-            for k in keys[:-1]:
-                if k not in d:
-                    d[k] = {}
-                d = d[k]
-            d[keys[-1]] = value
-            with open(self.config_path, "w", encoding="utf-8") as file:
-                yaml.dump(config, file)
+            with self.lock:
+                config = self.read_config()
+                keys = key.split(".")
+                d = config
+                for k in keys[:-1]:
+                    if k not in d:
+                        d[k] = {}
+                    d = d[k]
+                d[keys[-1]] = value
+                with open(self.config_path, "w", encoding="utf-8") as file:
+                    yaml.dump(config, file)
         except Exception as e:
             self.logger.error("編輯配置值時發生錯誤: %s", traceback.format_exc())
             raise e
-
-    # 取得 stationUuid 的值
-    def get_station_uuid(self):
-        config = self.read_config()
-        if "magicai-platform-server" not in config:
-            config["magicai-platform-server"] = {}
-        if (
-            "uuid" not in config["magicai-platform-server"]
-            or not config["magicai-platform-server"]["uuid"]
-        ):
-            station_uuid = str(uuid.uuid4())
-            self.edit_config("magicai-platform-server.uuid", station_uuid)
-        else:
-            station_uuid = config["magicai-platform-server"]["uuid"]
-        return station_uuid
