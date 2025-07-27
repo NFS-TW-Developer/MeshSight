@@ -82,7 +82,7 @@ def start_scheduler_job():
     scheduler_async.start()
 
 async def main():
-    logger.info("MeshSight-Gateway is running...")
+    logger.info("meshsight-gateway is running...")
     # 等待 5 秒以確保服務啟動
     await asyncio.sleep(5)
     logger.info("正在初始化資料模型屬性...")

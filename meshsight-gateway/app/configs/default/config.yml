@@ -19,7 +19,7 @@ meshtastic:
     maxDistance: 20000 # 最大距離，單位為 meter。LoRa 通常可達 16 至 20 公里，此限制用於防止手動定位的節點誤導使用者。來源：https://wikipedia.org/wiki/LoRa
 
 postgres:
-  host: "MeshSight-Gateway-PostgreSQL"
+  host: "meshsight-gateway-postgres"
   port: "5432"
   database: "postgres"
   username: "postgres"
@@ -29,7 +29,7 @@ mqtt:
   client:
     - hosts: ["mqtt.meshtastic.org"]
       port: 1883
-      identifier: "MeshSight-Gateway"
+      identifier: "meshsight-gateway"
       username: "meshdev"
       password: "large4cats"
       showErrorLog: true

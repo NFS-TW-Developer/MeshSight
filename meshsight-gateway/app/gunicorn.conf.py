@@ -8,6 +8,9 @@ bind = "0.0.0.0:80"
 worker_class = "uvicorn.workers.UvicornWorker"
 timeout = 300
 
+# 允許所有 forwarded IP，讓 Uvicorn 解析 X-Forwarded-For
+forwarded_allow_ips = "*"
+
 # 設定日誌輸出到標準輸出 stdout
 loglevel = "info"
 accesslog = "-"  # Gunicorn 的存取日誌輸出到 stdout
