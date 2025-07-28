@@ -58,6 +58,22 @@ class MapService:
                             node_id
                         )
                     )
+                    # 如果 node_info.loraModemPreset 為 None，則嘗試從 node_info.channel 中取得關鍵字並轉換格式
+                    if not node_info.loraModemPreset:
+                        LORA_MODEM_PRESET_KEYWORDS = [
+                            "LongSlow", "LongMod", "LongFast", "MediumSlow", "MediumFast",
+                            "ShortSlow", "ShortFast", "ShortTurbo"
+                        ]
+                        if node_info.channel:
+                            found = next((kw for kw in LORA_MODEM_PRESET_KEYWORDS if kw in node_info.channel), None)
+                            if found:
+                                # 轉換成大寫底線格式
+                                node_info.loraModemPreset = found.replace("Long", "LONG_").replace("Medium", "MEDIUM_").replace("Short", "SHORT_").upper().replace("_SLOW", "_SLOW").replace("_FAST", "_FAST").replace("_MOD", "_MOD").replace("_TURBO", "_TURBO")
+                                node_info.loraModemPreset = node_info.loraModemPreset.replace("__", "_")
+                            else:
+                                node_info.loraModemPreset = None
+                        else:
+                            node_info.loraModemPreset = None
                     node_positions: List[PostionItem] = (
                         await self.nodePositionRepository.fetch_node_position_by_node_id(
                             node_id, 5
