@@ -427,6 +427,31 @@ class MqttListenerService:
             ):
                 return
             node_id = MeshtasticUtil.convert_node_id_from_hex_to_int(payload.get("id"))
+            
+            # 如果 payload 中的 modem_preset 為 None，則嘗試從 topic 中提取出 channel 進行判斷
+            lora_modem_preset:str = payload.get("modem_preset", None)
+            if not lora_modem_preset:
+                topic = message_json.get("topic")
+                channel = MeshtasticUtil.get_channel_from_topic(topic)
+                if channel:
+                    LORA_MODEM_PRESET_KEYWORDS = [
+                        "LongSlow", "LongMod", "LongFast", "MediumSlow", "MediumFast",
+                        "ShortSlow", "ShortFast", "ShortTurbo"
+                    ]
+                    # 去除 .json 結尾
+                    channel = channel.replace("(json)", "")
+                    found = next((
+                        keyword for keyword in LORA_MODEM_PRESET_KEYWORDS if keyword in channel
+                    ), None)
+                    if found:
+                        # 轉換成大寫底線格式
+                        lora_modem_preset = found.replace("Long", "LONG_").replace("Medium", "MEDIUM_").replace("Short", "SHORT_").upper().replace("_SLOW", "_SLOW").replace("_FAST", "_FAST").replace("_MOD", "_MOD").replace("_TURBO", "_TURBO")
+                        lora_modem_preset = lora_modem_preset.replace(" ", "_")
+                    else:
+                        lora_modem_preset = None
+                else:
+                    lora_modem_preset = None
+
             # 新增 NodeInfo
             node_info = await self.create_or_update_node_info(
                 NodeInfo(
@@ -440,6 +465,7 @@ class MqttListenerService:
                     ),
                     is_licensed=payload.get("is_licensed", None),
                     role=payload.get("role", None),
+                    lora_modem_preset=lora_modem_preset,
                     update_at=datetime.fromtimestamp(
                         message_json.get("timestamp"), tz=timezone.utc
                     ).replace(microsecond=0),
