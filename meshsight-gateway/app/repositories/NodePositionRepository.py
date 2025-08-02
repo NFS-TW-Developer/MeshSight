@@ -117,10 +117,14 @@ class NodePositionRepository:
                                 houseNumber=address.get("house_number"),
                                 road=address.get("road"),
                                 neighbourhood=address.get("neighbourhood"),
-                                district=address.get("suburb")
-                                or address.get("city_district")
-                                or address.get("town")
-                                or address.get("village"),
+                                district=(
+                                    address.get("city_district")
+                                    or address.get("district")
+                                    or address.get("suburb")
+                                    or address.get("town")
+                                    or address.get("village")
+                                    or address.get("hamlet")
+                                ),
                                 city=address.get("city"),
                                 county=address.get("county"),
                                 state=address.get("state"),
