@@ -9,7 +9,7 @@ from app.configs.Database import (
 from typing import List
 from fastapi import Depends
 from app.models.NodePositionModel import NodePosition
-from app.schemas.pydantic.NodeSchema import PostionItem
+from app.schemas.pydantic.NodeSchema import PositionItem
 from sqlalchemy import desc, select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import aliased, Session
@@ -59,7 +59,7 @@ class NodePositionRepository:
     # 取得節點座標資料
     async def fetch_node_position_by_node_id(
         self, node_id: int, limit: int
-    ) -> List[PostionItem]:
+    ) -> List[PositionItem]:
         try:
             subquery = aliased(
                 select(NodePosition)
@@ -86,7 +86,7 @@ class NodePositionRepository:
             if not result:
                 return []
 
-            items: List[PostionItem] = []
+            items: List[PositionItem] = []
             for x in result:
                 try:
                     try:
@@ -99,7 +99,7 @@ class NodePositionRepository:
                     except Exception as e:
                         raise ValueError(f"Invalid topic: {x.topic}")
 
-                    item = PostionItem(
+                    item = PositionItem(
                         latitude=x.latitude,
                         longitude=x.longitude,
                         altitude=x.altitude,

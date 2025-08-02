@@ -8,7 +8,7 @@ from fastapi import Depends
 from app.models.NodeNeighborEdgeModel import NodeNeighborEdge
 from app.models.NodeNeighborInfoModel import NodeNeighborInfo
 from app.schemas.pydantic.MapSchema import MapCoordinatesItem, MapCoordinatesResponse
-from app.schemas.pydantic.NodeSchema import InfoItem, PostionItem
+from app.schemas.pydantic.NodeSchema import InfoItem, PositionItem
 from app.repositories.NodeInfoRepository import NodeInfoRepository
 from app.repositories.NodeNeighborInfoRepository import NodeNeighborInfoRepository
 from app.repositories.NodePositionRepository import NodePositionRepository
@@ -27,19 +27,26 @@ class MapService:
     ) -> None:
         self.config = ConfigUtil().read_config()
         self.logger = logging.getLogger(__name__)
+        self.logger.setLevel(self.config.get("log", {}).get("level", "INFO").upper())
         self.nodeInfoRepository = nodeInfoRepository
         self.nodeNeighborInfoRepository = nodeNeighborInfoRepository
         self.nodePositionRepository = nodePositionRepository
 
     async def coordinates(
-        self, start: str, end: str, report_node_hours: int
+        self, start: str, end: str, report_node_hours: int, lora_modem_preset_list: str
     ) -> MapCoordinatesResponse:
         try:
             start_time = datetime.fromisoformat(start).replace(second=0, microsecond=0)
             end_time = datetime.fromisoformat(end).replace(second=0, microsecond=0)
         except ValueError:
             raise BusinessLogicException("查詢日期格式錯誤")
-        cache_name = f"MapService.coordinates/{start_time.strftime('%Y%m%d%H%M%S')}_{end_time.strftime('%Y%m%d%H%M%S')}_{report_node_hours}"
+        lora_modem_preset_list = (
+            lora_modem_preset_list.split(",")
+            if isinstance(lora_modem_preset_list, str)
+            else lora_modem_preset_list
+        )
+        lora_modem_preset_list.sort()
+        cache_name = f"MapService.coordinates/{start_time.strftime('%Y%m%d%H%M%S')}_{end_time.strftime('%Y%m%d%H%M%S')}_{report_node_hours}_{lora_modem_preset_list}"
         cache_json = OtherUtil.read_cache_json(cache_name)
         if cache_json:
             return MapCoordinatesResponse.parse_raw(cache_json)
@@ -53,12 +60,27 @@ class MapService:
             items: List[MapCoordinatesItem] = []
             for node_id in node_ids:
                 try:
+                    # 取得節點資訊
                     node_info: InfoItem = (
                         await self.nodeInfoRepository.fetch_node_info_by_node_id(
                             node_id
                         )
                     )
-                    node_positions: List[PostionItem] = (
+                    # 如果 node_info 為 None，則將 lora_modem_preset 視為 UNKNOWN，且不在 lora_modem_preset_list 中，則跳過
+                    lora_modem_preset = "UNKNOWN"
+                    if (
+                        node_info is not None
+                        and hasattr(node_info, "loraModemPreset")
+                        and node_info.loraModemPreset is not None
+                    ):
+                        lora_modem_preset = node_info.loraModemPreset
+                    if (
+                        lora_modem_preset_list
+                        and lora_modem_preset not in lora_modem_preset_list
+                    ):
+                        continue
+                    # 取得節點座標資料
+                    node_positions: List[PositionItem] = (
                         await self.nodePositionRepository.fetch_node_position_by_node_id(
                             node_id, 5
                         )
@@ -117,7 +139,10 @@ class MapService:
                         node_b_position.longitude,
                     )
                     # 檢查是否超過距離限制
-                    if distanceA2B > self.config["meshtastic"]["neighborinfo"]["maxDistance"]:
+                    if (
+                        distanceA2B
+                        > self.config["meshtastic"]["neighborinfo"]["maxDistance"]
+                    ):
                         continue
                     # 檢查是否沒加入過，則加入節點連線，確保較小的 ID 在前
                     if (
@@ -149,7 +174,10 @@ class MapService:
                             node_c_position.longitude,
                         )
                         # 檢查是否超過距離限制
-                        if distanceB2C > self.config["meshtastic"]["neighborinfo"]["maxDistance"]:
+                        if (
+                            distanceB2C
+                            > self.config["meshtastic"]["neighborinfo"]["maxDistance"]
+                        ):
                             continue
                         # 檢查是否沒加入過
                         if (
@@ -175,7 +203,12 @@ class MapService:
                                 node_c_position.longitude,
                             )
                             # 檢查是否超過距離限制
-                            if distanceA2C > self.config["meshtastic"]["neighborinfo"]["maxDistance"]:
+                            if (
+                                distanceA2C
+                                > self.config["meshtastic"]["neighborinfo"][
+                                    "maxDistance"
+                                ]
+                            ):
                                 continue
                             # 檢查是否沒加入過
                             sorted_ids = sorted([node_a_id, node_b_id, node_c_id])
@@ -209,7 +242,10 @@ class MapService:
                     node_b_position.longitude,
                 )
                 # 檢查是否超過距離限制
-                if distanceA2B > self.config["meshtastic"]["neighborinfo"]["maxDistance"]:
+                if (
+                    distanceA2B
+                    > self.config["meshtastic"]["neighborinfo"]["maxDistance"]
+                ):
                     continue
                 if (
                     min(node_a.id, node_b.id),

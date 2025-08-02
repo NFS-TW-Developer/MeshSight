@@ -1,21 +1,18 @@
-from datetime import datetime, timedelta
 import inspect
 import logging
-import pytz
 from app.configs.Database import (
     get_db_connection,
     get_db_connection_async,
 )
-from typing import List, Tuple
-from fastapi import Depends
 from app.models.NodeNeighborEdgeModel import NodeNeighborEdge
 from app.models.NodeNeighborInfoModel import NodeNeighborInfo
-from app.schemas.pydantic.NodeSchema import PostionItem
-from sqlalchemy import desc, select, func
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import aliased, Session
 from app.utils.ConfigUtil import ConfigUtil
-from app.utils.MeshtasticUtil import MeshtasticUtil
+from datetime import datetime, timedelta
+from typing import List, Tuple
+from fastapi import Depends
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import Session
 
 
 class NodeNeighborInfoRepository:
@@ -48,7 +45,10 @@ class NodeNeighborInfoRepository:
                         )
                     )
                 )  # 限制最大查詢天數
-                .join(NodeNeighborEdge, NodeNeighborInfo.node_id == NodeNeighborEdge.node_id)
+                .join(
+                    NodeNeighborEdge,
+                    NodeNeighborInfo.node_id == NodeNeighborEdge.node_id,
+                )
                 .where(NodeNeighborInfo.update_at.between(start, end))
             )
             result = query.fetchall()

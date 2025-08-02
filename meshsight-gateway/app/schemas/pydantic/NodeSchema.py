@@ -19,7 +19,7 @@ class InfoItem(BaseModel):
     rootTopic: str  # 根主題
 
 
-class PostionItem(BaseModel):
+class PositionItem(BaseModel):
     latitude: float  # 緯度
     longitude: float  # 經度
     altitude: Optional[float]  # 高度

@@ -1,14 +1,14 @@
 import json
 from typing import List, Optional, Tuple
 from pydantic import BaseModel
-from .NodeSchema import InfoItem, PostionItem
+from .NodeSchema import InfoItem, PositionItem
 
 
 class MapCoordinatesItem(BaseModel):
     id: int  # ID
     idHex: str  # ID HEX
     info: Optional[InfoItem]  # 資訊
-    positions: List[PostionItem]  # 節點座標
+    positions: List[PositionItem]  # 節點座標
     reportNodeId: List[int]  # 回報節點 ID
 
 
