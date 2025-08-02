@@ -1,6 +1,21 @@
 from datetime import datetime
-from typing import List, Optional
+from typing import Dict, List, Optional
 from pydantic import BaseModel
+
+
+class ResolvedAddressItem(BaseModel):
+    fullAddress: Optional[str]  # 完整地址
+    houseNumber: Optional[str]
+    road: Optional[str]
+    neighbourhood: Optional[str]
+    district: Optional[str]
+    city: Optional[str]
+    county: Optional[str]
+    state: Optional[str]
+    postcode: Optional[str]
+    country: Optional[str]
+    countryCode: Optional[str]
+    raw: Optional[Dict]  # 原始 address dict，備用
 
 
 class InfoItem(BaseModel):
@@ -31,6 +46,7 @@ class PositionItem(BaseModel):
     viaIdHex: str  # 來源 node ID HEX
     channel: str  # 頻道
     rootTopic: str  # 根主題
+    resolvedAddress: Optional[ResolvedAddressItem]  # 解析後的地址資訊
 
 
 class TelemetryDeviceItem(BaseModel):
@@ -50,6 +66,12 @@ class NodeInfoResponse(BaseModel):
     id: int  # ID
     idHex: str  # ID HEX
     item: InfoItem  # 資訊
+
+
+class NodePositionResponse(BaseModel):
+    id: int  # ID
+    idHex: str  # ID HEX
+    position: Optional[PositionItem]  # 位置資訊
 
 
 class NodeTelemetryDeviceResponse(BaseModel):

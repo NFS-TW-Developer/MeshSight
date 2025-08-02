@@ -34,6 +34,26 @@ async def get_info(nodeId: int, nodeService: NodeService = Depends()):
         )
 
 
+# 取得節點定位資訊
+@router.get(
+    "/position/{nodeId}", response_model=BaseResponse[Optional[NodePositionResponse]]
+)
+async def get_position(nodeId: int, nodeService: NodeService = Depends()):
+    try:
+        return BaseResponse(
+            status="success",
+            message="success",
+            data=await nodeService.position(nodeId),
+        )
+
+    except Exception as e:
+        return BaseResponse(
+            status="error",
+            message=str(e),
+            data=None,
+        )
+
+
 # 取得節點遙測資訊 device
 @router.get(
     "/telemetry/device/{nodeId}",

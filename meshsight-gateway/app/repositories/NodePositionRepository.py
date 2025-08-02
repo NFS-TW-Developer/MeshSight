@@ -9,12 +9,13 @@ from app.configs.Database import (
 from typing import List
 from fastapi import Depends
 from app.models.NodePositionModel import NodePosition
-from app.schemas.pydantic.NodeSchema import PositionItem
+from app.schemas.pydantic.NodeSchema import PositionItem, ResolvedAddressItem
 from sqlalchemy import desc, select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import aliased, Session
 from app.utils.ConfigUtil import ConfigUtil
 from app.utils.MeshtasticUtil import MeshtasticUtil
+from geopy.geocoders import Nominatim
 
 
 class NodePositionRepository:
@@ -58,7 +59,10 @@ class NodePositionRepository:
 
     # 取得節點座標資料
     async def fetch_node_position_by_node_id(
-        self, node_id: int, limit: int
+        self,
+        node_id: int,
+        limit: int,
+        resolved_address: bool = False,
     ) -> List[PositionItem]:
         try:
             subquery = aliased(
@@ -99,6 +103,33 @@ class NodePositionRepository:
                     except Exception as e:
                         raise ValueError(f"Invalid topic: {x.topic}")
 
+                    # 嘗試解析位置資訊，有資料才建立 resolvedAddress
+                    resolvedAddress: ResolvedAddressItem = None
+                    if resolved_address and (x.latitude and x.longitude):
+                        geolocator = Nominatim(user_agent="meshsight-gateway")
+                        location = geolocator.reverse(
+                            (x.latitude, x.longitude), language="zh-TW"
+                        )
+                        if location:
+                            address = location.raw.get("address", {})
+                            resolvedAddress = ResolvedAddressItem(
+                                fullAddress=location.address,
+                                houseNumber=address.get("house_number"),
+                                road=address.get("road"),
+                                neighbourhood=address.get("neighbourhood"),
+                                district=address.get("suburb")
+                                or address.get("city_district")
+                                or address.get("town")
+                                or address.get("village"),
+                                city=address.get("city"),
+                                county=address.get("county"),
+                                state=address.get("state"),
+                                postcode=address.get("postcode"),
+                                country=address.get("country"),
+                                countryCode=address.get("country_code"),
+                                raw=address,
+                            )
+
                     item = PositionItem(
                         latitude=x.latitude,
                         longitude=x.longitude,
@@ -115,6 +146,7 @@ class NodePositionRepository:
                         viaIdHex=viaIdHex,
                         channel=MeshtasticUtil.get_channel_from_topic(x.topic),
                         rootTopic=MeshtasticUtil.get_root_topic_from_topic(x.topic),
+                        resolvedAddress=resolvedAddress,
                     )
                     items.append(item)
                 except Exception as e:

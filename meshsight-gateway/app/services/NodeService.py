@@ -1,10 +1,17 @@
 from datetime import datetime
 import inspect
 import logging
+from typing import List
 from app.exceptions.BusinessLogicException import BusinessLogicException
 from fastapi import Depends
-from app.schemas.pydantic.NodeSchema import NodeInfoResponse, NodeTelemetryDeviceResponse
+from app.schemas.pydantic.NodeSchema import (
+    NodeInfoResponse,
+    NodePositionResponse,
+    NodeTelemetryDeviceResponse,
+    PositionItem,
+)
 from app.repositories.NodeInfoRepository import NodeInfoRepository
+from app.repositories.NodePositionRepository import NodePositionRepository
 from app.repositories.NodeTelemetryDeviceRepository import NodeTelemetryDeviceRepository
 from app.utils.ConfigUtil import ConfigUtil
 from app.utils.MeshtasticUtil import MeshtasticUtil
@@ -15,11 +22,13 @@ class NodeService:
     def __init__(
         self,
         nodeInfoRepository: NodeInfoRepository = Depends(),
+        nodePositionRepository: NodePositionRepository = Depends(),
         nodeTelemetryDeviceRepository: NodeTelemetryDeviceRepository = Depends(),
     ) -> None:
         self.config = ConfigUtil().read_config()
         self.logger = logging.getLogger(__name__)
         self.nodeInfoRepository = nodeInfoRepository
+        self.nodePositionRepository = nodePositionRepository
         self.nodeTelemetryDeviceRepository = nodeTelemetryDeviceRepository
 
     async def info(self, node_id: int) -> NodeInfoResponse:
@@ -28,6 +37,25 @@ class NodeService:
                 id=node_id,
                 idHex=f"!{MeshtasticUtil.convert_node_id_from_int_to_hex(node_id)}",
                 item=await self.nodeInfoRepository.fetch_node_info_by_node_id(node_id),
+            )
+        except BusinessLogicException as e:
+            raise Exception(f"{str(e)}")
+        except Exception as e:
+            self.logger.error(f"{inspect.currentframe().f_code.co_name}: {str(e)}")
+            raise Exception("內部伺服器錯誤，請稍後再試")
+
+    async def position(self, node_id: int) -> NodePositionResponse:
+        try:
+            # 取得節點座標資料
+            node_positions: List[PositionItem] = (
+                await self.nodePositionRepository.fetch_node_position_by_node_id(
+                    node_id, 1, True
+                )
+            )
+            return NodePositionResponse(
+                id=node_id,
+                idHex=f"!{MeshtasticUtil.convert_node_id_from_int_to_hex(node_id)}",
+                position=node_positions[0] if node_positions else None,
             )
         except BusinessLogicException as e:
             raise Exception(f"{str(e)}")
