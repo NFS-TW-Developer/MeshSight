@@ -3,16 +3,12 @@ from typing import Dict, List, Optional
 from pydantic import BaseModel
 
 
-class ResolvedAddressItem(BaseModel):
+class TaiwanAddressItem(BaseModel):
     fullAddress: Optional[str]  # 完整地址
-    houseNumber: Optional[str]
-    road: Optional[str]
-    neighbourhood: Optional[str]
-    district: Optional[str]
-    city: Optional[str]
-    county: Optional[str]
-    state: Optional[str]
-    postcode: Optional[str]
+    emergencyAddress: Optional[str]  # 緊急地址(例如：台北市政府、去除門牌號碼)
+    districtLevel: Optional[str]  # 區／鎮／鄉，例如：大安區、草屯鎮
+    cityOrCounty: Optional[str]  # 縣／直轄市，例如：台中市、新北市
+    postcode: Optional[str]  # 郵遞區號
     country: Optional[str]
     countryCode: Optional[str]
     raw: Optional[Dict]  # 原始 address dict，備用
@@ -46,7 +42,7 @@ class PositionItem(BaseModel):
     viaIdHex: str  # 來源 node ID HEX
     channel: str  # 頻道
     rootTopic: str  # 根主題
-    resolvedAddress: Optional[ResolvedAddressItem]  # 解析後的地址資訊
+    taiwanAddress: Optional[TaiwanAddressItem]  # 解析後的台灣地址資訊
 
 
 class TelemetryDeviceItem(BaseModel):

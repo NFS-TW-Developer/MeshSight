@@ -9,7 +9,7 @@ from app.configs.Database import (
 from typing import List
 from fastapi import Depends
 from app.models.NodePositionModel import NodePosition
-from app.schemas.pydantic.NodeSchema import PositionItem, ResolvedAddressItem
+from app.schemas.pydantic.NodeSchema import PositionItem, TaiwanAddressItem
 from sqlalchemy import desc, select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import aliased, Session
@@ -103,8 +103,8 @@ class NodePositionRepository:
                     except Exception as e:
                         raise ValueError(f"Invalid topic: {x.topic}")
 
-                    # 嘗試解析位置資訊，有資料才建立 resolvedAddress
-                    resolvedAddress: ResolvedAddressItem = None
+                    # 嘗試解析位置資訊，有資料才建立 taiwanAddressItem
+                    taiwanAddressItem: TaiwanAddressItem = None
                     if resolved_address and (x.latitude and x.longitude):
                         geolocator = Nominatim(user_agent="meshsight-gateway")
                         location = geolocator.reverse(
@@ -112,22 +112,51 @@ class NodePositionRepository:
                         )
                         if location:
                             address = location.raw.get("address", {})
-                            resolvedAddress = ResolvedAddressItem(
-                                fullAddress=location.address,
-                                houseNumber=address.get("house_number"),
-                                road=address.get("road"),
-                                neighbourhood=address.get("neighbourhood"),
-                                district=(
-                                    address.get("city_district")
-                                    or address.get("district")
-                                    or address.get("suburb")
+                            full_address = location.address
+                            # 製作 emergency_address
+                            if address.get("amenity"):
+                                # 如果有 amenity，則使用 amenity 作為 emergency_address
+                                emergency_address = address.get("amenity")
+                            else:
+                                # 否則使用 full_address 去除 house_number、country
+                                house_number = address.get("house_number")
+                                country = address.get("country")
+                                emergency_address = full_address
+                                if house_number and house_number in emergency_address:
+                                    emergency_address = emergency_address.replace(
+                                        house_number, "", 1
+                                    ).strip(", ")
+                                if country and country in emergency_address:
+                                    emergency_address = emergency_address.replace(
+                                        country, "", 1
+                                    ).strip(", ")
+                                emergency_address = emergency_address.strip(
+                                    ", "
+                                )  # 去除尾端逗號
+                                emergency_address = emergency_address.replace(
+                                    ", ", ","
+                                )  # 去除逗號後的空格
+                                # 轉換地址順序，並移除逗號空格
+                                emergency_address = "".join(
+                                    reversed(
+                                        [
+                                            part.strip()
+                                            for part in emergency_address.split(",")
+                                            if part.strip()
+                                        ]
+                                    )
+                                )
+                            taiwanAddressItem = TaiwanAddressItem(
+                                fullAddress=full_address,
+                                emergencyAddress=emergency_address,
+                                districtLevel=(
+                                    address.get("district")
                                     or address.get("town")
-                                    or address.get("village")
-                                    or address.get("hamlet")
+                                    or address.get("suburb")
                                 ),
-                                city=address.get("city"),
-                                county=address.get("county"),
-                                state=address.get("state"),
+                                cityOrCounty=(
+                                    address.get("city") or address.get("county")
+                                ),
                                 postcode=address.get("postcode"),
                                 country=address.get("country"),
                                 countryCode=address.get("country_code"),
@@ -150,7 +179,7 @@ class NodePositionRepository:
                         viaIdHex=viaIdHex,
                         channel=MeshtasticUtil.get_channel_from_topic(x.topic),
                         rootTopic=MeshtasticUtil.get_root_topic_from_topic(x.topic),
-                        resolvedAddress=resolvedAddress,
+                        taiwanAddress=taiwanAddressItem,
                     )
                     items.append(item)
                 except Exception as e:
