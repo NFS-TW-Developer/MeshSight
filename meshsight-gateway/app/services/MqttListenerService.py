@@ -267,6 +267,9 @@ class MqttListenerService:
             key_list = ConfigUtil().get_config("meshtastic.channels", [])
             # 解析 topic 獲取 channel
             channel = topic.split("/")[-2]
+            # 如果 channel 為 PKI，則不進行解密，因為是點對點加密
+            if channel == "PKI":
+                return None
             # 取得 channel 對應的金鑰
             key = next(
                 (item["key"] for item in key_list if item["name"] == channel), None
